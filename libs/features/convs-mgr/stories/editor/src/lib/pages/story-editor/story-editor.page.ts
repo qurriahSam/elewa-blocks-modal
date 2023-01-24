@@ -1,4 +1,9 @@
-import { ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  ViewChild,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 
@@ -9,21 +14,27 @@ import { BrowserJsPlumbInstance, newInstance } from '@jsplumb/browser-ui';
 
 import { Breadcrumb, Logger } from '@iote/bricks-angular';
 
-import { StoryEditorState, StoryEditorStateService } from '@app/state/convs-mgr/story-editor';
+import {
+  StoryEditorState,
+  StoryEditorStateService,
+} from '@app/state/convs-mgr/story-editor';
 
-import { HOME_CRUMB, STORY_EDITOR_CRUMB } from '@app/elements/nav/convl/breadcrumbs';
+import {
+  HOME_CRUMB,
+  STORY_EDITOR_CRUMB,
+} from '@app/elements/nav/convl/breadcrumbs';
 
 import { StoryEditorFrame } from '../../model/story-editor-frame.model';
 import { AddBotToChannelModal } from '../../modals/add-bot-to-channel-modal/add-bot-to-channel.modal';
 import { FormControl } from '@angular/forms';
+import { EditBlockDetailsModalComponent } from '../../modals/edit-block-details-modal/edit-block-details-modal.component';
 
 @Component({
   selector: 'convl-story-editor-page',
   templateUrl: './story-editor.page.html',
-  styleUrls: ['./story-editor.page.scss']
+  styleUrls: ['./story-editor.page.scss'],
 })
-export class StoryEditorPageComponent implements OnDestroy
-{
+export class StoryEditorPageComponent implements OnDestroy {
   private _sb = new SubSink();
 
   pageName: string;
@@ -37,72 +48,80 @@ export class StoryEditorPageComponent implements OnDestroy
   stateSaved: boolean = true;
 
   //TODO @CHESA LInk boolean to existence of story in DB
-  storyHasBeenSaved:boolean = false;
+  storyHasBeenSaved: boolean = false;
 
   zoomLevel: FormControl = new FormControl(100);
   frameElement: HTMLElement;
   frameZoom: number = 1;
   frameZoomInstance: BrowserJsPlumbInstance;
 
-  constructor(private _editorStateService: StoryEditorStateService,
-              private _dialog: MatDialog,
-              private _cd: ChangeDetectorRef,
-              private _logger: Logger,
-              _router: Router)
-  {
-    this._editorStateService.get()
-        .subscribe((state: StoryEditorState) => 
-        {
-          this._logger.log(() => `Loaded editor for story ${state.story.id}. Logging state.`)
-          this._logger.log(() => state);
+  showBlock: boolean = true;
 
-          this.state = state;
-          this.pageName = `Story overview :: ${ state.story.name }`;
+  constructor(
+    private _editorStateService: StoryEditorStateService,
+    private _dialog: MatDialog,
+    private _cd: ChangeDetectorRef,
+    private _logger: Logger,
+    _router: Router
+  ) {
+    this._editorStateService.get().subscribe((state: StoryEditorState) => {
+      this._logger.log(
+        () => `Loaded editor for story ${state.story.id}. Logging state.`
+      );
+      this._logger.log(() => state);
 
-          const story = state.story;
-          this.breadcrumbs = [HOME_CRUMB(_router), STORY_EDITOR_CRUMB(_router, story.id, story.name, true)];
-          this.loading.next(false);
-        }
-    );     
+      this.state = state;
+      this.pageName = `Story overview :: ${state.story.name}`;
+
+      const story = state.story;
+      this.breadcrumbs = [
+        HOME_CRUMB(_router),
+        STORY_EDITOR_CRUMB(_router, story.id, story.name, true),
+      ];
+      this.loading.next(false);
+    });
   }
 
-  onFrameViewLoaded(frame: StoryEditorFrame)
-  {
+  @ViewChild('editModal') editBlockModal: EditBlockDetailsModalComponent;
+  toggleModal() {
+    
+    this.editBlockModal.toggleModal();
+  }
+
+  onFrameViewLoaded(frame: StoryEditorFrame) {
     this.frame = frame;
 
     // After both frame AND data are loaded (hence the subscribe), draw frame blocks on the frame.
-    this._sb.sink = 
-      this.loading.pipe(filter(loading => !loading))
-            .subscribe(() => 
-            {              
-              this.frame.init(this.state);
-              this.setFrameZoom();
-            }
-            );
-      
+    this._sb.sink = this.loading
+      .pipe(filter((loading) => !loading))
+      .subscribe(() => {
+        this.frame.init(this.state);
+        this.setFrameZoom();
+      });
+
     this._cd.detectChanges();
   }
 
   setFrameZoom() {
     this.frameElement = document.getElementById('editor-frame')!;
     this.frameZoomInstance = newInstance({
-      container: this.frameElement
-    })
+      container: this.frameElement,
+    });
     this.zoom(this.frameZoom);
   }
 
   increaseFrameZoom() {
-    if (this.zoomLevel.value <= 100) this.zoom(this.frameZoom += 0.03);
+    if (this.zoomLevel.value <= 100) this.zoom((this.frameZoom += 0.03));
   }
 
   decreaseFrameZoom() {
-    if (this.zoomLevel.value > 25) this.zoom(this.frameZoom -= 0.03);
+    if (this.zoomLevel.value > 25) this.zoom((this.frameZoom -= 0.03));
   }
 
   zoom(frameZoom: number) {
     this.frameElement.style.transform = `scale(${frameZoom})`;
     this.frame.jsPlumbInstance.setZoom(frameZoom);
-    this.zoomLevel.setValue(Math.round(frameZoom / 1 * 100));
+    this.zoomLevel.setValue(Math.round((frameZoom / 1) * 100));
   }
 
   zoomChanged(event: any) {
@@ -122,27 +141,24 @@ export class StoryEditorPageComponent implements OnDestroy
     // from getConnections()
     // find a jsPlumb types library to replace any with strict type
     let connections = this.frame.getJsPlumbConnections as any[];
-    
+
     this.state.connections = connections;
-  
-    this._editorStateService.persist(this.state)
-        .subscribe((success) => {
-          if (success) {
-            this.stateSaved = true;
-            this.storyHasBeenSaved = true;
-          }
-        });
+
+    this._editorStateService.persist(this.state).subscribe((success) => {
+      if (success) {
+        this.stateSaved = true;
+        this.storyHasBeenSaved = true;
+      }
+    });
   }
 
-  addToChannel(){
+  addToChannel() {
     this._dialog.open(AddBotToChannelModal, {
-      width: '550px'
-    })
-
+      width: '550px',
+    });
   }
 
-  ngOnDestroy()
-  {
+  ngOnDestroy() {
     this._editorStateService.flush();
     this._sb.unsubscribe();
   }
