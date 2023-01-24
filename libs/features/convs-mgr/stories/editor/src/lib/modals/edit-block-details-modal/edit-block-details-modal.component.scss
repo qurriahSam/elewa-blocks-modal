@@ -1,0 +1,19 @@
+
+
+.close {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: end;
+}
+
+.close-btn {
+  cursor: pointer;
+  background-color: #fff;
+  border: none;
+}
+
+.sidenav {
+  padding: 20px;
+  width: 100%;
+}
