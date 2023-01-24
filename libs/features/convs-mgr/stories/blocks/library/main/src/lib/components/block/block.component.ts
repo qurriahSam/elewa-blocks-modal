@@ -23,6 +23,8 @@ import { _CreateReplyBlockForm } from '../../model/reply-block-form.model';
 
 import { iconsAndTitles } from '../../model/icons-and-titles';
 import { _CreateJumpBlockForm } from '../../model/jump-block-form.model';
+
+import {BlockModalToggleService} from "../../../../../../../editor/src/lib/providers/block-modal-toggle.service"
 /**
  * Block which sends a message from bot to user.
  */
@@ -60,7 +62,8 @@ export class BlockComponent implements OnInit {
 
   constructor(private _el: ElementRef,
               private _fb: FormBuilder,
-              private _logger: Logger
+              private _logger: Logger,
+              private _toggler: BlockModalToggleService
   ) { }
 
   ngOnInit(): void {
