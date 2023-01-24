@@ -10,14 +10,14 @@ app-blocks-library {
 }
 
 .subbar-btn {
-  background-color: #FFAB2D;
+  background-color: #ffab2d;
   color: white;
   font-weight: 600;
   min-width: 100px;
 }
 
-.add-channel-btn{
-  background-color: #6418C3;
+.add-channel-btn {
+  background-color: #6418c3;
   color: white;
   font-weight: 600;
   min-width: 100px;
@@ -34,4 +34,12 @@ app-blocks-library {
 
 ::ng-deep .mat-mini-fab .mat-button-wrapper {
   bottom: 0px;
+}
+
+.sidenav-container {
+  width: 300px;
+}
+
+.btn-tog {
+  background-color: #6418c3;
 }
